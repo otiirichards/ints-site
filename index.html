@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>intangible: AI does the work. An expert answers for it.</title>
+<meta name="description" content="AI can’t be held accountable. On intangible, every piece of AI work is reviewed and signed by the verified professional whose expertise trained it, and every client gets a receipt that proves it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<script>
+  // decide before first paint whether the intro plays, so nothing flashes
+  (function(){var d=document.documentElement;d.classList.add('js');
+    var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    d.classList.add(rm?'rm':'intro');})();
+</script>
+<style>
+/* intangible tokens, paper theme on white (matches the film) */
+:root{
+  --paper:#ffffff; --paper-raised:#ffffff; --paper-sunk:#f5f5f3;
+  --ink:#111111; --ink-muted:#5b5b5b; --hairline:#e3e3e0; --control-border:#8a8a87;
+  --signature:#1f3bff; --on-signature:#ffffff; --signature-wash:#e8ebff;
+  --error:#c8261e; --error-wash:#f9e0dc;
+  --shadow-sheet:0 1px 0 rgba(17,17,17,.06),0 12px 32px -12px rgba(17,17,17,.18);
+  --shadow-lift:0 2px 0 rgba(17,17,17,.05),0 24px 48px -16px rgba(17,17,17,.24);
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s6:24px;--s8:32px;--s12:48px;--s16:64px;--s24:96px;--s32:128px;--s48:192px;
+  --ease-human:cubic-bezier(.22,1,.36,1); --ease-machine:cubic-bezier(.65,0,.35,1);
+  --dur-micro:200ms; --dur-reveal:600ms; --dur-signature:1400ms;
+  --font-display:"Courier Prime","Courier New",Courier,monospace;
+  --font-sans:"Courier Prime","Courier New",Courier,monospace;
+  --font-mono:"Courier Prime","Courier New",Courier,monospace; /* the Int writes on a typewriter */
+  --margin:var(--s12); --gutter:var(--s8);
+}
+@media (max-width:760px){:root{--margin:var(--s4);--gutter:var(--s4)}}
+*{box-sizing:border-box}
+html{background:var(--paper);color:var(--ink);-webkit-text-size-adjust:100%}
+/* white paper: a fixed grain layer, multiplied over everything except the film */
+body::after{content:"";position:fixed;inset:0;z-index:14;pointer-events:none;background:url(paper.png) repeat;background-size:320px;mix-blend-mode:multiply}
+.player{z-index:16}
+.rm body::after{display:block}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;font:400 16px/27px var(--font-sans);text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--signature);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{padding:0 var(--margin);max-width:1440px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
+@media (max-width:760px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* type */
+.display-xl{font:400 clamp(34px,4.6vw,66px)/1.06 var(--font-display);letter-spacing:-.035em;margin:0;text-wrap:balance}
+.display-l{font:400 clamp(30px,3.8vw,52px)/1.08 var(--font-display);letter-spacing:-.03em;margin:0;text-wrap:balance}
+.display-m{font:400 clamp(26px,2.8vw,38px)/1.12 var(--font-display);letter-spacing:-.025em;margin:0;text-wrap:balance}
+.body-l{font:400 18px/30px var(--font-sans);max-width:58ch;margin:0;text-wrap:pretty}
+.body{font:400 16px/27px var(--font-sans);max-width:64ch;margin:0;text-wrap:pretty}
+.small{font:400 14px/21px var(--font-sans)}
+.label{font:400 13px/1.4 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
+.mono{font-family:var(--font-mono)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:var(--s2);font:400 14px/20px var(--font-sans);padding:var(--s3) var(--s6);border-radius:2px;border:1px solid var(--control-border);background:transparent;color:var(--ink);text-decoration:none;cursor:pointer;transition:background var(--dur-micro) var(--ease-machine),color var(--dur-micro) var(--ease-machine),border-color var(--dur-micro) var(--ease-machine)}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--signature);border-color:var(--signature);color:var(--on-signature)}
+.btn.primary:hover{background:var(--ink);border-color:var(--ink)}
+.btn[disabled],.btn.primary[disabled],.btn.primary[disabled]:hover{background:transparent;color:var(--ink-muted);border-color:var(--control-border);cursor:not-allowed}
+.link{font:400 14px/20px var(--font-sans);text-decoration:underline;text-decoration-color:var(--control-border);text-underline-offset:4px;transition:text-decoration-color var(--dur-micro) var(--ease-machine)}
+.link:hover{text-decoration-color:var(--signature)}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto 0;z-index:20;background:url(paper.png) repeat,rgba(255,255,255,.94);background-size:320px,auto;backdrop-filter:saturate(1.2) blur(6px);-webkit-backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid transparent;transition:border-color var(--dur-micro) var(--ease-machine)}
+.nav.scrolled{border-bottom-color:var(--hairline)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:inline-flex;align-items:center;gap:var(--s3);text-decoration:none;font:400 16px/20px var(--font-sans);letter-spacing:-.01em}
+.brand svg{width:22px;height:22px;display:block}
+.nav ul{display:flex;align-items:center;gap:var(--s8);list-style:none;margin:0;padding:0}
+.nav ul a:not(.btn){font:400 14px/20px var(--font-sans);text-decoration:none;color:var(--ink-muted)}
+.nav ul a:not(.btn):hover{color:var(--ink)}
+.navcta{visibility:hidden;opacity:0;transition:opacity var(--dur-micro) var(--ease-machine),visibility 0s linear var(--dur-micro)}
+.nav.past .navcta,.rm .navcta,.nogl .navcta{visibility:visible;opacity:1;transition-delay:0s}
+@media (max-width:760px){.nav .hide-m{display:none}.nav ul{gap:var(--s4)}}
+
+/* the dots: one fixed layer over everything, never interactive */
+#dots{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+
+/* hero */
+.hero{min-height:100svh;display:flex;align-items:center;padding:calc(64px + var(--s16)) 0 var(--s16)}
+.hero .grid{align-items:center;width:100%}
+.hero-copy{grid-column:1 / span 8;grid-row:1;position:relative}
+.mark-slot{grid-column:9 / span 4;grid-row:1;aspect-ratio:1;position:relative;width:100%;max-width:520px;justify-self:center}
+.mark-slot svg{position:absolute;inset:16%;width:68%;height:68%;display:none}
+.rm .mark-slot svg,.nogl .mark-slot svg{display:block}
+@media (max-width:760px){
+  .hero{align-items:flex-start;padding-top:calc(64px + var(--s6))}
+  .mark-slot{grid-column:1 / -1;grid-row:1;max-width:300px;width:78%;margin-bottom:var(--s4)}
+  .hero-copy{grid-column:1 / -1;grid-row:2}
+}
+.headline{position:relative}
+.headline .line{display:block}
+.headline .cur{display:inline-block;width:.5em;height:.95em;background:var(--ink);vertical-align:-.12em;margin-left:.04em;animation:blink 1s steps(1,end) infinite}
+.intro .headline .line{visibility:hidden}
+.intro .headline .line.typing,.intro .headline .line.typed{visibility:visible}
+.hero-sig{display:block;width:min(300px,62%);height:auto;margin:var(--s4) 0 var(--s6) -6px;overflow:visible}
+.hero .body-l{color:var(--ink)}
+.ctas{display:flex;flex-wrap:wrap;gap:var(--s4);align-items:center;margin-top:var(--s8)}
+.hero .body-l,.ctas{transition:opacity var(--dur-reveal) var(--ease-human)}
+
+/* film */
+.film{padding:var(--s24) 0}
+.film-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s6);margin-bottom:var(--s8)}
+.film-head .label{white-space:nowrap}
+.player{position:relative;margin:0;background:var(--paper);box-shadow:var(--shadow-sheet);aspect-ratio:16/9;overflow:hidden}
+.player video{position:absolute;inset:0;width:100%;height:100%;display:block;background:#fff}
+.player video::cue{font:400 18px/1.4 var(--font-mono);color:#111;background:rgba(255,255,255,.88)}
+.play{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start;padding:var(--s6);background:transparent;border:0;cursor:pointer;width:100%}
+.play span{display:inline-flex;align-items:center;gap:var(--s3);font:400 14px/20px var(--font-sans);background:var(--ink);color:#fff;padding:var(--s3) var(--s6) var(--s3) var(--s4);border-radius:2px;transition:background var(--dur-micro) var(--ease-machine)}
+.play:hover span{background:var(--signature)}
+.play svg{width:18px;height:18px}
+.controls{position:absolute;left:0;right:0;bottom:0;display:none;align-items:center;gap:var(--s4);padding:var(--s3) var(--s4);background:rgba(255,255,255,.94);border-top:1px solid var(--hairline)}
+.player.started .controls{display:flex}.player.started .play{display:none}
+.controls button{font:400 13px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;background:none;border:1px solid var(--control-border);border-radius:2px;padding:7px 10px;color:var(--ink);cursor:pointer}
+.controls button[aria-pressed="true"]{border-color:var(--signature);color:var(--signature)}
+.controls input[type=range]{flex:1;accent-color:var(--signature)}
+.controls time{font:400 12px/1 var(--font-mono);color:var(--ink-muted);min-width:84px;text-align:right}
+.film .small{color:var(--ink-muted);margin-top:var(--s4)}
+
+/* the signature moment */
+.sign{padding:var(--s32) 0}
+@media (max-width:760px){.sign{padding:var(--s24) 0}}
+.sign-intro{grid-column:1 / span 7;margin-bottom:var(--s12)}
+.sign-intro .display-m{margin-bottom:var(--s6)}
+.desk{align-items:start}
+.doc{grid-column:1 / span 7;background:var(--paper-raised);box-shadow:var(--shadow-sheet);padding:var(--s8);position:relative}
+.doc .label{display:flex;gap:var(--s3);align-items:center}
+.dot8{width:8px;height:8px;border-radius:9999px;background:var(--ink-muted);flex:none}
+.doc.review .dot8{background:var(--error)}.doc.signed .dot8{background:var(--signature)}
+.doc h3{font:400 clamp(21px,2vw,25px)/1.2 var(--font-display);letter-spacing:-.02em;margin:var(--s6) 0 var(--s4)}
+.doc .meta{font:400 13px/1.5 var(--font-mono);color:var(--ink-muted);margin-bottom:var(--s6);border-bottom:1px solid var(--hairline);padding-bottom:var(--s4)}
+.draft{font:400 16px/1.6 var(--font-mono);min-height:11em;white-space:pre-wrap;outline:none}
+.draft .cur{display:inline-block;width:.6em;height:1.1em;background:var(--ink);vertical-align:-.2em;animation:blink 1s steps(1,end) infinite}
+.draft.editable{border-radius:2px;box-shadow:0 0 0 1px var(--control-border);padding:var(--s2) var(--s3);margin:calc(-1 * var(--s2)) calc(-1 * var(--s3));cursor:text}
+.draft.editable:focus{box-shadow:0 0 0 2px var(--signature)}
+.sigline{margin-top:var(--s8);border-top:1px solid var(--hairline);padding-top:var(--s6);display:grid;grid-template-columns:1fr auto;gap:var(--s6);align-items:end}
+.pad-wrap{position:relative}
+.pad{display:block;width:100%;height:120px;touch-action:none;cursor:not-allowed}
+.pad-wrap::after{content:"";position:absolute;left:28px;right:0;bottom:22px;border-bottom:1px solid var(--control-border)}
+.pad-wrap .x{position:absolute;left:4px;bottom:16px;font:400 18px/1 var(--font-mono);color:var(--ink-muted)}
+.pad-wrap .hint{position:absolute;left:28px;bottom:0;font:400 13px/1 var(--font-mono);color:var(--ink-muted)}
+.doc.ready .pad{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M3 25 L6 16 L19 3 L25 9 L12 22 Z' fill='white' stroke='%23111' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M3 25 L8.5 19.5' stroke='%23111' stroke-width='1.5'/%3E%3Ccircle cx='3' cy='25' r='1.5' fill='%231f3bff'/%3E%3C/svg%3E") 3 25,crosshair}
+.status{margin-top:var(--s4);font:400 14px/21px var(--font-sans);color:var(--ink-muted);min-height:21px}
+
+/* receipt */
+.receipt{grid-column:8 / span 5;display:none;background:var(--paper-raised);box-shadow:var(--shadow-sheet);visibility:hidden;opacity:0;transform:translateY(24px);transition:transform var(--dur-reveal) var(--ease-human),opacity var(--dur-reveal) var(--ease-human),box-shadow var(--dur-reveal) var(--ease-human),visibility 0s linear var(--dur-reveal);margin-top:0}
+.receipt.shown{display:block}
+.receipt.on{visibility:visible;opacity:1;transform:none;transition-delay:0s}
+.receipt.lift{box-shadow:var(--shadow-lift)}
+.receipt header{display:flex;justify-content:space-between;align-items:center;padding:var(--s4) var(--s6);border-bottom:1px solid var(--hairline)}
+.receipt dl{margin:0;padding:0 var(--s6)}
+.receipt .row{display:grid;grid-template-columns:128px 1fr;gap:var(--s4);padding:var(--s3) 0;border-bottom:1px solid var(--hairline)}
+.receipt dt{font:400 12px/1.6 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
+.receipt dd{margin:0;font:400 14px/1.5 var(--font-mono);overflow-wrap:break-word}
+.receipt .hash{overflow-wrap:anywhere}
+.receipt .hash{font:400 12px/1.6 var(--font-mono);letter-spacing:.02em;display:block;color:var(--ink)}
+.receipt .hash+.hash{margin-top:var(--s1)}
+.receipt .bar{display:flex;gap:var(--s3);align-items:center;padding:var(--s4) var(--s6);background:var(--signature-wash);font:700 14px/20px var(--font-sans)}
+.receipt .bar .dot8{background:var(--signature)}
+.receipt.failed .bar{background:var(--error-wash)}
+.receipt.failed .bar .dot8{background:var(--error)}
+.receipt .bar small{display:block;font:400 13px/1.4 var(--font-sans);color:var(--ink)}
+.receipt .close{display:none}
+.change{grid-column:1 / span 7;display:none;margin-top:var(--s12);opacity:0;transform:translateY(16px);transition:opacity var(--dur-reveal) var(--ease-human),transform var(--dur-reveal) var(--ease-human)}
+.change.shown{display:block}
+.change.on{opacity:1;transform:none}
+.change .display-l{margin-bottom:var(--s4)}
+.peek{display:none}
+@media (max-width:1000px){
+  .doc,.sign-intro,.change{grid-column:1 / -1}
+  .receipt{grid-column:1 / -1;margin-top:var(--s8)}
+}
+@media (max-width:760px){
+  .doc{padding:var(--s6) var(--s4)}
+  .sigline{grid-template-columns:1fr}
+  /* the receipt becomes a bottom sheet on phones */
+  .receipt{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;max-height:78svh;overflow:auto;transform:translateY(100%);box-shadow:var(--shadow-lift)}
+  .receipt.on{transform:none}
+  .receipt .close{display:inline-flex}
+  .receipt .row{grid-template-columns:104px 1fr}
+  .peek.on{display:inline-flex;margin-top:var(--s4)}
+}
+
+/* shared section rhythm */
+.sec{padding:var(--s32) 0}
+@media (max-width:760px){.sec{padding:var(--s24) 0}}
+.sec-head{grid-column:1 / span 8;margin-bottom:var(--s16)}
+.sec-head .display-m,.sec-head .display-l{margin-bottom:var(--s6)}
+@media (max-width:760px){.sec-head{grid-column:1 / -1}}
+.src{font:400 12px/1.5 var(--font-mono);color:var(--ink-muted);margin-top:var(--s3)}
+.rv{opacity:0;transform:translateY(16px);transition:opacity var(--dur-reveal) var(--ease-human),transform var(--dur-reveal) var(--ease-human)}
+.rv.in{opacity:1;transform:none}
+.mask{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+.mask>span{display:block;transform:translateY(115%);transition:transform var(--dur-reveal) var(--ease-human)}
+.in .mask>span{transform:none}
+.rm .rv,.rm .mask>span,.nojs .rv{opacity:1;transform:none}
+
+/* 2 · the shift */
+.shift .grid{align-items:end}
+.stats{grid-column:1 / span 6;display:grid;gap:var(--s12)}
+.stat{font:400 clamp(48px,7vw,92px)/1 var(--font-mono);letter-spacing:-.05em}
+.stat-cap{font:400 16px/26px var(--font-sans);max-width:40ch;margin-top:var(--s2)}
+.field{grid-column:8 / span 5;aspect-ratio:1;position:relative;border:1px solid var(--control-border);background:var(--paper-sunk)}
+.field .tiny{position:absolute;left:0;bottom:0;width:15.2%;aspect-ratio:1;background:var(--ink)}
+.field .fl{position:absolute;font:400 13px/1.3 var(--font-mono);color:var(--ink-muted)}
+.field .fl.big{right:var(--s4);top:var(--s4);text-align:right}
+.field .fl.small{left:calc(15.2% + var(--s3));bottom:var(--s2)}
+.field{transform-origin:0 100%;transform:scale(.152);transition:transform 1400ms var(--ease-machine)}
+.field.in{transform:none}
+.ratio{grid-column:1 / -1;margin-top:var(--s24);display:flex;gap:var(--s12);align-items:baseline;flex-wrap:wrap;border-top:1px solid var(--hairline);padding-top:var(--s12)}
+@media (max-width:760px){.stats,.field{grid-column:1 / -1}.field{margin-top:var(--s12);max-width:360px}}
+
+/* 3 · the bargain */
+.bargain .display-l{grid-column:1 / span 10}
+.bargain .mask:nth-child(2)>span{transition-delay:120ms}
+.bargain .mask:nth-child(3)>span{transition-delay:420ms;transition-duration:900ms}
+.bargain .mask:nth-child(3){margin-top:.35em}
+@media (max-width:760px){.bargain .display-l{grid-column:1 / -1}}
+
+/* 4 · what an Int is */
+.roles{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gutter)}
+@media (max-width:1000px){.roles{grid-template-columns:1fr}}
+.role{background:var(--paper-raised);box-shadow:var(--shadow-sheet);padding:var(--s6);border-top:2px solid var(--hairline);transition:border-color var(--dur-reveal) var(--ease-human)}
+.role h3{font:400 21px/1.25 var(--font-display);letter-spacing:-.02em;margin:var(--s4) 0 var(--s2)}
+.role .meta{font:400 13px/1.5 var(--font-mono);color:var(--ink-muted);min-height:2.9em}
+.role .st{display:flex;gap:var(--s2);align-items:center;font:400 13px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
+.chips{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s6);padding:0;list-style:none}
+.chip{font:400 13px/1 var(--font-mono);padding:8px 10px;border:1px solid var(--hairline);border-radius:2px;color:var(--ink-muted);transition:background var(--dur-reveal) var(--ease-human),border-color var(--dur-reveal) var(--ease-human),color var(--dur-reveal) var(--ease-human)}
+.role.on.ver{border-top-color:var(--signature)}
+.role.on.ver .st{color:var(--signature)}.role.on.ver .st .dot8{background:var(--signature)}
+.role.on.ver .chip{background:var(--signature-wash);border-color:var(--signature-wash);color:var(--ink)}
+.role.on.ver .chip:nth-child(2){transition-delay:80ms}.role.on.ver .chip:nth-child(3){transition-delay:160ms}
+.chip .lk{margin-right:6px}
+
+/* 5 · how it works: one pinned, scrubbed scene */
+.how-track{height:270vh;position:relative}
+.how-stage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;justify-content:center;padding-top:64px}
+.how-line{position:relative;margin:132px 0 var(--s8);height:2px;background:var(--hairline)}
+.how-line .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--signature)}
+.how-token{position:absolute;bottom:14px;left:0;transform:translateX(-24px);display:flex;align-items:flex-end;gap:var(--s3)}
+.how-token .sheet{width:48px;height:62px;background:var(--paper-raised);border:1px solid var(--hairline);box-shadow:var(--shadow-lift);position:relative;flex:none}
+.how-token .sheet::before{content:"";position:absolute;left:8px;right:8px;top:10px;height:26px;background:repeating-linear-gradient(var(--ink-muted) 0 1px,transparent 1px 5px);transform:scaleY(0);transform-origin:50% 0;transition:transform 500ms var(--ease-machine)}
+.how-token.drafted .sheet::before{transform:none}
+.how-token .sheet .sg{position:absolute;left:8px;bottom:9px;width:30px;height:12px;overflow:visible}
+.how-token .sheet .sg path{fill:none;stroke:var(--signature);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:60;stroke-dashoffset:60;transition:stroke-dashoffset 900ms var(--ease-human)}
+.how-token.signed .sheet .sg path{stroke-dashoffset:0}
+.how-token .money{font:400 13px/1 var(--font-mono);white-space:nowrap;color:var(--ink);padding:7px 10px;border:1px solid var(--control-border);border-radius:2px;background:var(--paper-raised);margin-bottom:2px;transition:background var(--dur-reveal) var(--ease-human),border-color var(--dur-reveal) var(--ease-human),color var(--dur-reveal) var(--ease-human)}
+.how-token.held .money{border-color:var(--ink)}
+.how-token.paid .money{background:var(--signature-wash);border-color:var(--signature);color:var(--ink)}
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s4);list-style:none;margin:0;padding:0;counter-reset:st}
+.steps li{position:relative;padding-top:var(--s6);color:var(--ink-muted);transition:color var(--dur-micro) var(--ease-machine)}
+.steps li::before{content:"";position:absolute;top:-41px;left:0;width:9px;height:9px;border-radius:9999px;background:var(--paper);border:1.5px solid var(--control-border);transition:background var(--dur-micro) var(--ease-machine),border-color var(--dur-micro) var(--ease-machine)}
+.steps li.on{color:var(--ink)}
+.steps li.on::before{background:var(--signature);border-color:var(--signature)}
+.steps h3{font:400 17px/1.3 var(--font-display);letter-spacing:-.01em;margin:0 0 var(--s2);color:inherit}
+.steps h3 .n{display:block;font:400 12px/1 var(--font-mono);letter-spacing:.08em;margin-bottom:var(--s3)}
+.steps p{font:400 14px/22px var(--font-sans);margin:0}
+@media (max-width:900px){
+  .how-track{height:auto}.how-stage{position:static;height:auto;padding-top:0}
+  .how-line{display:none}
+  .steps{grid-template-columns:1fr;gap:var(--s8);border-left:2px solid var(--hairline);padding-left:var(--s6)}
+  .steps li{padding-top:0}.steps li::before{top:4px;left:calc(-1 * var(--s6) - 6px)}
+}
+
+/* 7 · who pays */
+.ledger{grid-column:1 / -1;border-top:1px solid var(--ink)}
+.lrow{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,4fr) minmax(0,4fr);gap:var(--gutter);padding:var(--s6) 0;border-bottom:1px solid var(--hairline);opacity:0;transform:translateX(-24px);transition:opacity 500ms var(--ease-machine),transform 500ms var(--ease-machine)}
+.lrow.hd{opacity:1;transform:none;padding:var(--s3) 0}
+.ledger.in .lrow{opacity:1;transform:none}
+.ledger.in .lrow:nth-child(3){transition-delay:60ms}.ledger.in .lrow:nth-child(4){transition-delay:120ms}
+.lrow .c1{font:400 17px/1.4 var(--font-display)}
+.lrow .c2{font:400 15px/24px var(--font-sans);color:var(--ink-muted)}
+.lrow .c3{font:400 15px/24px var(--font-mono);display:flex;gap:var(--s3);align-items:baseline}
+.lrow .c3 .dot8{transform:translateY(-1px)}
+.lrow.paid .c3 .dot8{background:var(--signature)}
+@media (max-width:760px){.lrow{grid-template-columns:1fr;gap:var(--s2)}.lrow.hd{display:none}}
+
+/* 8 · apprentice */
+.appr .grid{align-items:center}
+.appr .sec-head{grid-column:1 / span 6;margin-bottom:0}
+.cosign{grid-column:8 / span 5;background:var(--paper-raised);box-shadow:var(--shadow-sheet);padding:var(--s6)}
+.cosign .r{display:grid;grid-template-columns:1fr;gap:var(--s1);padding:var(--s4) 0;border-bottom:1px solid var(--hairline)}
+.cosign .r:last-child{border-bottom:0}
+.cosign svg{width:200px;height:46px;overflow:visible;display:block}
+.cosign dt{font:400 12px/1.4 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted)}
+.cosign dd{margin:0;font:400 14px/1.5 var(--font-mono)}
+@media (max-width:1000px){.appr .sec-head,.cosign{grid-column:1 / -1}.cosign{margin-top:var(--s12)}}
+
+/* 9 · time back */
+.timeback .grid{align-items:center}
+.timeback .sec-head{grid-column:1 / span 5;margin-bottom:0}
+.loop{grid-column:7 / span 6;margin:0;position:relative;aspect-ratio:16/9;background:var(--paper);overflow:hidden}
+.loop video{width:100%;height:100%;display:block;object-fit:cover;mix-blend-mode:multiply}
+@media (max-width:1000px){.timeback .sec-head,.loop{grid-column:1 / -1}.loop{margin-top:var(--s12)}}
+
+/* 10 · close */
+.closing{padding:var(--s32) 0}
+.close-mark{width:min(360px,70vw);aspect-ratio:1;margin:0 auto var(--s16);position:relative}
+.close-mark svg{position:absolute;inset:16%;width:68%;height:68%;display:none}
+.rm .close-mark svg,.nogl .close-mark svg{display:block}
+.closing .display-l{text-align:center;max-width:22ch;margin:0 auto var(--s24)}
+.paths{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gutter)}
+@media (max-width:1000px){.paths{grid-template-columns:1fr}}
+.path{background:var(--paper-raised);box-shadow:var(--shadow-sheet);padding:var(--s8) var(--s6);display:flex;flex-direction:column;gap:var(--s4);scroll-margin-top:96px}
+.path h3{font:400 21px/1.25 var(--font-display);letter-spacing:-.02em;margin:0}
+.path p{font:400 15px/24px var(--font-sans);margin:0;color:var(--ink);flex:1}
+.path form{display:none;flex-direction:column;gap:var(--s3)}
+.path.open form{display:flex}.path.open .open-btn{display:none}
+.path label{font:400 12px/1.4 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);display:flex;flex-direction:column;gap:6px}
+.path input,.path select{font:400 15px/1 var(--font-sans);padding:10px 12px;border:1px solid var(--control-border);border-radius:2px;background:var(--paper-raised);color:var(--ink);text-transform:none;letter-spacing:0}
+.path .note{font:400 13px/1.5 var(--font-mono);color:var(--ink-muted);min-height:1em}
+footer{padding:var(--s24) 0 var(--s12);border-top:1px solid var(--hairline)}
+footer .wrap{display:grid;grid-template-columns:1fr auto;gap:var(--s6) var(--s12);align-items:start}
+.foot-a .small{margin:var(--s3) 0 0}
+.foot-b{display:flex;flex-wrap:wrap;gap:var(--s3) var(--s6)}
+.foot-b a{font:400 14px/20px var(--font-sans);color:var(--ink-muted);text-decoration:none}.foot-b a:hover{color:var(--ink)}
+.foot-c{grid-column:1 / -1;margin:0;border-top:1px solid var(--hairline);padding-top:var(--s4)}
+@media (max-width:760px){footer .wrap{grid-template-columns:1fr}}
+footer .small{color:var(--ink-muted)}
+
+/* reduced motion: everything present, nothing travels */
+.rm *,.rm *::before,.rm *::after{animation:none!important;transition-duration:150ms!important}
+</style>
+</head>
+<body>
+<a class="sr" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="intangible, back to top">
+      <svg id="navmark" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9.3" fill="none" stroke="#111" stroke-width="1.8"/><circle cx="11" cy="11" r="4.4" fill="#1f3bff"/></svg>
+      <span>intangible</span>
+    </a>
+    <ul>
+      <li class="hide-m"><a href="#how">How it works</a></li>
+      <li class="hide-m"><a href="#receipt">The receipt</a></li>
+      <li class="hide-m"><a href="#film">The film</a></li>
+      <li class="navcta"><a class="btn" href="#join">Join the waiting list</a></li>
+    </ul>
+  </div>
+</header>
+
+<canvas id="dots" aria-hidden="true"></canvas>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap grid">
+      <div class="mark-slot" id="markslot" role="img" aria-label="intangible">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#111" stroke-width="3"/><circle cx="50" cy="50" r="18" fill="#1f3bff"/></svg>
+      </div>
+      <div class="hero-copy">
+        <h1 class="headline display-xl" id="headline" aria-label="AI can’t sign its work. An expert can.">
+          <span class="line" aria-hidden="true">AI can’t sign its work.</span>
+          <span class="line" aria-hidden="true">An expert can.</span>
+        </h1>
+        <svg class="hero-sig" id="herosig" viewBox="0 0 300 70" aria-hidden="true"></svg>
+        <p class="body-l">On intangible, every AI agent belongs to the verified expert whose work trained it, and nothing it drafts leaves without their signature. Clients get expert work at the speed of AI, and the expert is paid every time.</p>
+        <p class="src" style="margin-top:var(--s8)">intangible isn’t open yet. Join the waiting list to be first in.</p>
+        <div class="ctas" style="margin-top:var(--s4)">
+          <a class="btn primary" href="#get-verified">Join as a professional</a>
+          <a class="btn" href="#find-expert">Join as a client</a>
+          <a class="link" href="#investors">For investors and co-founders →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="film" id="film" aria-labelledby="film-title">
+    <div class="wrap">
+      <div class="film-head">
+        <h2 class="display-m" id="film-title">The mark</h2>
+        <span class="label">Film · <span class="mono">1:07</span></span>
+      </div>
+      <figure class="player" id="player">
+        <video id="video" preload="none" playsinline poster="poster.jpg" aria-label="The mark, a 67-second film about judgement, accountability and the signature">
+          <source src="film.webm" type="video/webm">
+          <source src="film.mp4" type="video/mp4">
+          <track kind="captions" id="captrack" srclang="en" label="English" default>
+        </video>
+        <button class="play" id="play" type="button"><span><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M2 16 L4 10 L12 2 L16 6 L8 14 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 16 L5.5 12.5" stroke="currentColor" stroke-width="1.5"/></svg>Play the film</span></button>
+        <div class="controls">
+          <button type="button" id="pp" aria-label="Pause">Pause</button>
+          <input type="range" id="seek" min="0" max="67" step="0.1" value="0" aria-label="Seek">
+          <time id="time">0:00 / 1:07</time>
+          <button type="button" id="cc" aria-pressed="true">Captions</button>
+          <button type="button" id="mute" aria-pressed="false">Mute</button>
+        </div>
+      </figure>
+      <p class="small">Sound plays only when you press play. Captions are on.</p>
+    </div>
+  </section>
+
+  <section class="sec shift" id="shift" aria-labelledby="shift-title">
+    <div class="wrap grid">
+      <div class="sec-head rv">
+        <h2 class="display-m" id="shift-title">AI isn’t after the software budget. It’s after the work.</h2>
+        <p class="body">And work has always needed someone who answers for it.</p>
+      </div>
+      <div class="stats">
+        <div class="rv"><div class="stat" data-count="13" data-pre="$" data-post="T">$13T</div><p class="stat-cap">The US labour market, in a year.</p></div>
+        <div class="rv"><div class="stat" data-count="300" data-pre="$" data-post="B">$300B</div><p class="stat-cap">Spent on software-as-a-service worldwide, in a year.</p>
+          <p class="src">Source: Alex Rampell, a16z, “Software is Eating Labor”, October 2025</p></div>
+      </div>
+      <div class="field" id="field" role="img" aria-label="A large square for the 13 trillion dollar labour market, with a tiny square in its corner for the 300 billion dollar software market.">
+        <span class="fl big">$13T labour</span><span class="tiny"></span><span class="fl small">$300B software</span>
+      </div>
+      <div class="ratio rv">
+        <div class="stat" data-count="6" data-pre="" data-post=" : 1">6 : 1</div>
+        <div><p class="stat-cap">For every dollar spent on software, six are spent on services.</p>
+          <p class="src">Source: Julien Bek, Sequoia Capital, “Services: The New Software”, March 2026</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec bargain" id="bargain" aria-label="The bargain">
+    <div class="wrap grid">
+      <p class="display-l rv" id="bargain-lines">
+        <span class="mask"><span>Years to learn the job.</span></span>
+        <span class="mask"><span>Weeks to train it into AI.</span></span>
+        <span class="mask"><span>But AI can’t be held liable.</span></span>
+      </p>
+    </div>
+  </section>
+
+  <section class="sec ints" id="ints" aria-labelledby="ints-title">
+    <div class="wrap grid">
+      <div class="sec-head rv">
+        <h2 class="display-m" id="ints-title">No verified work history, no Int.</h2>
+        <p class="body">An Int learns only from work its owner has done and had verified. Verification decides which tasks it may draft. Everything else stays locked.</p>
+      </div>
+      <div class="roles" id="roles">
+        <article class="role ver">
+          <div class="st"><span class="dot8" aria-hidden="true"></span>Verified</div>
+          <h3>Donor relations</h3>
+          <div class="meta">9 years · 41 documents checked against source</div>
+          <ul class="chips" aria-label="Tasks this Int may draft"><li class="chip">Grant proposals</li><li class="chip">Donor reports</li><li class="chip">Grant budgets</li></ul>
+        </article>
+        <article class="role ver">
+          <div class="st"><span class="dot8" aria-hidden="true"></span>Verified</div>
+          <h3>Finance and accounting</h3>
+          <div class="meta">6 years · 28 documents checked against source</div>
+          <ul class="chips" aria-label="Tasks this Int may draft"><li class="chip">Management accounts</li><li class="chip">Reconciliations</li><li class="chip">Audit preparation</li></ul>
+        </article>
+        <article class="role">
+          <div class="st"><span class="dot8" aria-hidden="true"></span>Not verified</div>
+          <h3>Legal drafting</h3>
+          <div class="meta">No work history submitted</div>
+          <ul class="chips" aria-label="Locked tasks"><li class="chip"><span class="lk" aria-hidden="true">×</span>Contracts</li><li class="chip"><span class="lk" aria-hidden="true">×</span>Legal opinions</li><li class="chip"><span class="lk" aria-hidden="true">×</span>Compliance reviews</li></ul>
+        </article>
+      </div>
+      <p class="src" style="grid-column:1 / -1">Example profile.</p>
+    </div>
+  </section>
+
+  <section class="how" id="how" aria-labelledby="how-title">
+    <div class="how-track" id="howtrack">
+      <div class="how-stage">
+        <div class="wrap">
+          <h2 class="display-m" id="how-title">How it works</h2>
+          <div class="how-line" aria-hidden="true"><div class="fill" id="howfill"></div>
+            <div class="how-token" id="howtoken"><span class="sheet"><svg class="sg" viewBox="0 0 30 12"><path d="M1 9c3-7 5-8 6-5s-2 6 1 5 4-7 6-6-1 5 2 5 4-5 6-4 1 3 3 3 3-2 4-2"/></svg></span><span class="money" id="howmoney">Not booked</span></div>
+          </div>
+          <ol class="steps" id="steps">
+            <li><h3><span class="n">01</span>Verify</h3><p>The professional’s work history is checked before an Int exists.</p></li>
+            <li><h3><span class="n">02</span>Book</h3><p>The client books the expert. Payment goes into escrow, not to anyone yet.</p></li>
+            <li><h3><span class="n">03</span>Draft</h3><p>The Int drafts from its owner’s verified work, in minutes.</p></li>
+            <li><h3><span class="n">04</span>Review and sign</h3><p>The professional reviews, edits and signs. Their name is now on it.</p></li>
+            <li><h3><span class="n">05</span>7-day review</h3><p>The client has seven days to check the work against its receipt.</p></li>
+            <li><h3><span class="n">06</span>Release</h3><p>Escrow releases. The professional is paid, every time the Int works.</p></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sign" id="receipt" aria-labelledby="sign-title">
+    <div class="wrap grid">
+      <div class="sign-intro">
+        <h2 class="display-m" id="sign-title">Read it. Change what you would. Sign it.</h2>
+        <p class="body">An Int has drafted this donor report from its owner’s verified work. Review it as you would anything you put your name to: edit any line, then sign as the reviewing professional.</p>
+      </div>
+    </div>
+    <div class="wrap grid desk">
+      <article class="doc" id="doc" aria-labelledby="doc-title">
+        <div class="label" id="docstate"><span class="dot8" aria-hidden="true"></span><span id="docstatetext">Waiting to draft</span></div>
+        <h3 id="doc-title">Interim report to the donor, Q3 2026</h3>
+        <div class="meta">Smallholder irrigation programme · Kisumu and Migori · prepared by int_richards_v1</div>
+        <div class="draft" id="draft" aria-live="off"></div>
+        <div class="sigline">
+          <div class="pad-wrap">
+            <canvas class="pad" id="pad" aria-label="Signature area. Draw your signature, or use the Sign button." role="img"></canvas>
+            <span class="hint" id="padhint">Sign here</span>
+          </div>
+          <button class="btn primary" id="signbtn" type="button" disabled>Sign</button>
+        </div>
+        <p class="status" id="status" aria-live="polite">The Int is about to draft.</p>
+        <button class="btn peek" id="peek" type="button">Show receipt</button>
+      </article>
+
+      <aside class="receipt" id="rcpt" aria-labelledby="rcpt-title" aria-live="polite">
+        <header><span class="label" id="rcpt-title">Receipt</span><button class="btn close" id="rclose" type="button">Hide</button></header>
+        <dl>
+          <div class="row"><dt>Int</dt><dd>int_richards_v1</dd></div>
+          <div class="row"><dt>Unlocked by</dt><dd>Verified donor relations role</dd></div>
+          <div class="row"><dt>Reviewed by</dt><dd>T. Richards, <span id="rtime">0:00</span> active</dd></div>
+          <div class="row"><dt>Edited in review</dt><dd id="redits">0 of 4 sentences</dd></div>
+          <div class="row"><dt>Source check</dt><dd>Figures match source data</dd></div>
+          <div class="row"><dt>Review integrity</dt><dd>No flags</dd></div>
+          <div class="row"><dt>Proof</dt><dd><span class="hash" id="rhash" title=""></span><span class="hash" id="rsig" title=""></span></dd></div>
+        </dl>
+        <div class="bar" id="rbar"><span class="dot8" aria-hidden="true"></span><span><span id="rstate">Verified</span><small id="rwhy">Signature matches the document.</small></span></div>
+      </aside>
+
+      <div class="change" id="change">
+        <h2 class="display-l">Change one word.</h2>
+        <p class="body">Edit any word in the report. The hash is recomputed in your browser and the signature stops verifying. Change it back, and it verifies again.</p>
+      </div>
+    </div>
+  </section>
+  <section class="sec pays" id="who-pays" aria-labelledby="pays-title">
+    <div class="wrap grid">
+      <div class="sec-head rv">
+        <h2 class="display-m" id="pays-title">The receipt decides who pays.</h2>
+        <p class="body">Every piece of work waits in escrow for seven days. If something is wrong, the receipt shows whether it came from the client’s data or the professional’s signed work, and the money follows.</p>
+      </div>
+      <div class="ledger" id="ledger" role="table" aria-label="Where a fault came from, and what happens">
+        <div class="lrow hd" role="row"><span class="label" role="columnheader">Who answers</span><span class="label" role="columnheader">What the receipt shows</span><span class="label" role="columnheader">What happens</span></div>
+        <div class="lrow paid" role="row"><span class="c1" role="cell">The client</span><span class="c2" role="cell">The signed work matches the source data the client supplied. The fault is in the source.</span><span class="c3" role="cell"><span class="dot8" aria-hidden="true"></span>The professional is paid. The client answers for their data.</span></div>
+        <div class="lrow" role="row"><span class="c1" role="cell">The professional</span><span class="c2" role="cell">The fault is in the signed work. Whoever drafted it, the signature made it theirs.</span><span class="c3" role="cell"><span class="dot8" aria-hidden="true"></span>Escrow is refunded to the client. The professional isn’t paid.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec appr" id="apprentice" aria-labelledby="appr-title">
+    <div class="wrap grid">
+      <div class="sec-head rv">
+        <h2 class="display-m" id="appr-title">The junior rung stays.</h2>
+        <p class="body">Juniors review work under a verified senior and co-sign it. They’re paid for their review, and every co-signed piece is added to their own verified record, until they’ve earned an Int of their own.</p>
+      </div>
+      <dl class="cosign" id="cosign" aria-label="A co-signed receipt">
+        <div class="r"><dt>Reviewed by</dt><dd>J. Achieng, apprentice</dd><svg viewBox="0 0 200 46" id="sigjr" aria-hidden="true"></svg></div>
+        <div class="r"><dt>Co-signed by</dt><dd>T. Richards, verified</dd><svg viewBox="0 0 200 46" id="sigsr" aria-hidden="true"></svg></div>
+        <div class="r"><dt>Paid for review</dt><dd>Both</dd></div>
+        <div class="r"><dt>Added to record</dt><dd>J. Achieng: 1 co-signed review</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="sec timeback" id="time-back" aria-labelledby="tb-title">
+    <div class="wrap grid">
+      <div class="sec-head rv">
+        <h2 class="display-m" id="tb-title">Talent is everywhere. Opportunity is not.</h2>
+        <p class="body">Review happens in windows the professional chooses, on any connection. The Int drafts while you’re away, and you review and sign when you’re back. An expert in Kisumu can serve a client in Copenhagen on equal footing.</p>
+      </div>
+      <figure class="loop"><video id="living" muted loop playsinline preload="none" poster="poster.jpg" aria-label="A loop from the film: the mark breathing while documents orbit it."><source data-src="living.webm" type="video/webm"><source data-src="living.mp4" type="video/mp4"></video></figure>
+    </div>
+  </section>
+
+  <section class="closing" id="close" aria-labelledby="close-title">
+    <div class="wrap">
+      <div class="close-mark" id="closeslot" role="img" aria-label="intangible">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#111" stroke-width="3"/><circle cx="50" cy="50" r="18" fill="#1f3bff"/></svg>
+      </div>
+      <h2 class="display-l rv" id="close-title">AI is going to do most knowledge work. The only open question is who answers for it.</h2>
+      <div class="paths" id="join">
+        <article class="path" id="get-verified">
+          <span class="label">Professionals</span>
+          <h3>Own the Int that does your job.</h3>
+          <p>Turn the judgement you built into an agent you own. Everything it drafts carries your name, and you’re paid every time it works. Join the waiting list to be among the first verified.</p>
+          <button class="btn primary open-btn" type="button">Join the waiting list</button>
+          <form novalidate><label>Name<input name="name" autocomplete="name" required></label><label>Email<input name="email" type="email" autocomplete="email" required></label>
+            <label>Field<select name="field"><option>Development and grants</option><option>Finance and accounting</option><option>Something else</option></select></label>
+            <button class="btn primary" type="submit">Join</button><p class="note" aria-live="polite"></p></form>
+        </article>
+        <article class="path" id="find-expert">
+          <span class="label">Clients</span>
+          <h3>Expert work, without the wait.</h3>
+          <p>The speed of AI and the judgement of an expert, with a signed receipt that shows who answers for the work. Join the waiting list to hear when experts in your field are verified.</p>
+          <button class="btn open-btn" type="button">Join the waiting list</button>
+          <form novalidate><label>Name<input name="name" autocomplete="name" required></label><label>Email<input name="email" type="email" autocomplete="email" required></label>
+            <label>What work do you need?<input name="need" placeholder="A donor report, a grant budget…"></label>
+            <button class="btn" type="submit">Join</button><p class="note" aria-live="polite"></p></form>
+        </article>
+        <article class="path" id="investors">
+          <span class="label">Investors and co-founders</span>
+          <h3>AI that works for the expert, not instead of them.</h3>
+          <p>We’re talking to investors and looking for a technical co-founder who wants to build the accountability layer for AI work.</p>
+          <button class="btn open-btn" type="button">Get in touch</button>
+          <form novalidate><label>Name<input name="name" autocomplete="name" required></label><label>Email<input name="email" type="email" autocomplete="email" required></label>
+            <label>I’m an<select name="who"><option>Investor</option><option>Engineer interested in co-founding</option></select></label>
+            <button class="btn" type="submit">Send</button><p class="note" aria-live="polite"></p></form>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-a"><a class="brand" href="#top"><svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9.3" fill="none" stroke="#111" stroke-width="1.8"/><circle cx="11" cy="11" r="4.4" fill="#1f3bff"/></svg><span>intangible</span></a>
+      <p class="small">AI that works for the expert, not instead of them.</p></div>
+    <nav class="foot-b" aria-label="Footer"><a href="#how">How it works</a><a href="#receipt">The receipt</a><a href="#who-pays">Who pays</a><a href="#film">The film</a><a href="#join">Join the waiting list</a></nav>
+    <p class="foot-c src">© 2026 intangible. Not yet open.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+<script>
+(function(){
+"use strict";
+var D=document, H=D.documentElement, RM=H.classList.contains('rm');
+var $=function(id){return D.getElementById(id)};
+var clamp=function(x,a,b){return Math.max(a,Math.min(b,x))};
+var easeH=function(x){x=clamp(x,0,1);return 1-Math.pow(1-x,4)}; // close to cubic-bezier(.22,1,.36,1)
+var smooth=function(a,b,x){x=clamp((x-a)/(b-a),0,1);return x*x*(3-2*x)};
+
+/* ───────── seeded generator for signatures ───────── */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+// a signature centre-line: looping cursive strokes and a closing flourish
+function sigPath(seed,w,h){
+  // a cursive name: a tall capital, a run of uneven letters with two ascenders, then a flourish back under it
+  var r=rng(seed),pts=[],i,ph=0,x=.06*w,base=.62*h,n=320,letters=6+Math.floor(r()*3),amps=[],asc=[1+Math.floor(r()*2),4+Math.floor(r()*2)];
+  for(i=0;i<letters;i++)amps.push(asc.indexOf(i)>=0?1.3:.42+r()*.3);
+  // capital: a tall downstroke with a loop
+  for(i=0;i<=48;i++){var t=i/48,q=t*Math.PI*2;pts.push([x+.05*w*t-Math.sin(q)*.035*w+(1-Math.cos(q))*.012*w, base-.58*h*(1-Math.cos(q))*.5*(1-t*.15)])}
+  x=pts[pts.length-1][0];
+  var span=(.7*w)/letters;
+  for(i=0;i<=n;i++){
+    var t=i/n,u=t*letters,k=Math.min(letters-1,Math.floor(u)),f=u-k,a=amps[k];
+    ph=u*Math.PI*2;
+    var lx=x+t*.7*w+Math.sin(ph)*span*(a>1?.34:.2);
+    var ly=base-(1-Math.cos(ph))*.5*.4*h*a-t*.05*h;
+    pts.push([lx-(base-ly)*.18,ly]);
+  }
+  var last=pts[pts.length-1];
+  for(i=1;i<=80;i++){var t2=i/80;pts.push([last[0]+.08*w*Math.sin(t2*Math.PI)-t2*.62*w*t2, last[1]+.2*h*Math.sin(t2*Math.PI*.55)+t2*.02*h])}
+  return pts;
+}
+// variable-width outline: thinner where the pen moves fast, tapered at both ends
+function outline(pts,wmin,wmax){
+  var L=[],R=[],n=pts.length,i;
+  for(i=0;i<n;i++){
+    var p0=pts[Math.max(0,i-1)],p1=pts[Math.min(n-1,i+1)],dx=p1[0]-p0[0],dy=p1[1]-p0[1],len=Math.hypot(dx,dy)||1;
+    var sp=len/2,taper=Math.min(1,i/14,(n-1-i)/18);
+    var w=(wmax-(wmax-wmin)*clamp(sp/4,0,1))*(.35+.65*taper);
+    var nx=-dy/len*w/2,ny=dx/len*w/2;L.push([pts[i][0]+nx,pts[i][1]+ny]);R.push([pts[i][0]-nx,pts[i][1]-ny]);
+  }
+  var d='M'+L.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join('L');
+  d+='L'+R.reverse().map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join('L')+'Z';
+  return d;
+}
+function lengthOf(pts){var s=0;for(var i=1;i<pts.length;i++)s+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return s}
+
+/* hero signature: filled variable-width shape revealed by a pen-path mask */
+var heroSig=$('herosig'),NS='http://www.w3.org/2000/svg';
+(function(){
+  var pts=sigPath(5,300,70),len=lengthOf(pts);
+  var center='M'+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join('L');
+  heroSig.innerHTML='<defs><mask id="hsm" maskUnits="userSpaceOnUse" x="-20" y="-20" width="340" height="110"><path id="hsmp" d="'+center+'" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="'+len.toFixed(0)+'" stroke-dashoffset="'+(RM?0:len).toFixed(0)+'"/></mask></defs><path d="'+outline(pts,1.1,3.4)+'" fill="#1f3bff" mask="url(#hsm)"/>';
+  heroSig.dataset.len=len;
+})();
+function drawHeroSig(){var p=$('hsmp');if(!p)return;p.style.transition='stroke-dashoffset 1400ms cubic-bezier(.22,1,.36,1)';p.style.strokeDashoffset='0'}
+
+/* ───────── hero intro: machine types, human sets, pen signs (≤ 2.5s, skippable) ───────── */
+var T0=performance.now(),introDone=RM,headline=$('headline'),lines=[].slice.call(headline.querySelectorAll('.line')),texts=lines.map(function(l){return l.textContent});
+function finishIntro(){
+  if(introDone)return;introDone=true;
+  lines.forEach(function(l,k){l.textContent=texts[k]});H.classList.remove('intro');drawHeroSig();T0=performance.now()-4000;
+}
+if(!RM){
+  // the headline is typed, one key at a time, on the typewriter
+  var li=0,ci=0;lines.forEach(function(l){l.textContent=''});
+  (function type(){
+    if(introDone)return;
+    var l=lines[li];l.className='line typing';ci++;l.textContent=texts[li].slice(0,ci);
+    var c=D.createElement('span');c.className='cur';l.appendChild(c);
+    if(ci>=texts[li].length){
+      if(li<lines.length-1){l.textContent=texts[li];l.className='line typed';li++;ci=0;setTimeout(type,140);return}
+      setTimeout(function(){if(introDone)return;l.textContent=texts[li];drawHeroSig();setTimeout(function(){introDone=true;H.classList.remove('intro')},1400)},160);return;
+    }
+    setTimeout(type,26);
+  })();
+  ['wheel','touchstart','keydown','pointerdown'].forEach(function(e){addEventListener(e,function(){if(performance.now()-T0>300)finishIntro()},{passive:true,once:true})});
+}
+
+/* ───────── smooth scroll ───────── */
+var lenis=null;
+function startLenis(){ if(RM||!window.Lenis)return; lenis=new Lenis({lerp:.1,smoothWheel:true}); }
+addEventListener('load',startLenis);
+D.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){
+  var id=a.getAttribute('href');var t=D.querySelector(id);if(!t)return;e.preventDefault();
+  if(lenis)lenis.scrollTo(t,{offset:-64,duration:1.2});else t.scrollIntoView({behavior:RM?'auto':'smooth'});
+  if(t.classList.contains('path'))t.classList.add('open');
+})});
+
+/* ───────── the dot mark: WebGL points, the film's own final frame ───────── */
+var canvas=$('dots'),gl=null,prog=null,N=0,U={},dpr=1,W=0,Hh=0;
+var state={p:0,g:0,ink:0,tip:[0,0],well:[0,0],mouse:[-999,-999,0],mt:0,trail:[0,0,0]};
+function initGL(data){
+  try{gl=canvas.getContext('webgl',{premultipliedAlpha:true,antialias:false,alpha:true})}catch(e){}
+  if(!gl){H.classList.add('nogl');return}
+  var small=matchMedia('(max-width:760px)').matches||(navigator.deviceMemory&&navigator.deviceMemory<=4);
+  N=small?2500:data.n;
+  var pos=new Int16Array(Uint8Array.from(atob(data.pos),function(c){return c.charCodeAt(0)}).buffer);
+  var meta=Uint8Array.from(atob(data.meta),function(c){return c.charCodeAt(0)});
+  var home=new Float32Array(N*2),m=new Float32Array(N*3),rnd=new Float32Array(N*4),ord=new Float32Array(N),r=rng(20261123),i;
+  for(i=0;i<N;i++){
+    var x=pos[i*2]/16000,y=pos[i*2+1]/16000;home[i*2]=x;home[i*2+1]=y;
+    m[i*3]=data.smin+meta[i*3]/255*(data.smax-data.smin);m[i*3+1]=meta[i*3+1]/255;m[i*3+2]=meta[i*3+2];
+    rnd[i*4]=r();rnd[i*4+1]=r();rnd[i*4+2]=r();rnd[i*4+3]=r();
+    // ring drawn clockwise from the top like a pen stroke; core order is random
+    ord[i]=meta[i*3+2]?r():((Math.atan2(y,x)+Math.PI/2+Math.PI*4)%(Math.PI*2))/(Math.PI*2);
+  }
+  var vs=[
+  'precision highp float;',
+  'attribute vec2 aHome;attribute vec3 aMeta;attribute vec4 aRnd;attribute float aOrd;',
+  'uniform vec2 uRes;uniform float uDpr,uIntro,uTime,uR,uP,uG,uInk;uniform vec2 uC,uWell,uTip;uniform vec3 uNav,uTrail,uMouse;uniform float uClose,uCR;uniform vec2 uCC;',
+  'varying float vA;varying float vBlue;varying float vRad;',
+  'float eh(float x){x=clamp(x,0.,1.);return 1.-pow(1.-x,4.);}',
+  'float sm(float a,float b,float x){x=clamp((x-a)/(b-a),0.,1.);return x*x*(3.-2.*x);}',
+  'vec2 wind(vec2 p,float t){float a=sin(p.y*.006+t*.35)+sin(p.x*.004-t*.27+1.7);float b=cos(p.x*.005+t*.31)+cos(p.y*.007-t*.22+.6);return vec2(a,-b)*.5;}',
+  'void main(){',
+  ' float blue=aMeta.z;vec2 home=uC+aHome*uR;float alpha=aMeta.y;float rad=aMeta.x*uR/230.;',
+  // assembly from a loose field
+  ' vec2 start=uC+(aRnd.xy*2.-1.)*vec2(min(uRes.x*.5,uR*3.2),min(uRes.y*.5,uR*2.4));',
+  ' float delay=blue>.5?(.78+aOrd*.3):(aOrd*.5+aRnd.z*.18);float dur=blue>.5?.82:1.12;',
+  ' float k=clamp((uIntro-delay)/dur,0.,1.);float e=.55*eh(k)+.45*k*k*(3.-2.*k);',
+  ' vec2 p=mix(start,home,e)+wind(start,uTime)*70.*sin(3.14159*e)*(blue>.5?.6:1.);',
+  ' alpha*=sm(0.,.25,uIntro-delay+.2);',
+  ' p+=vec2(sin(uTime*.7+aRnd.x*40.),cos(uTime*.6+aRnd.y*30.))*.6;',
+  // gentle touch: dots part around the cursor and settle back
+  ' vec2 dv=p-uMouse.xy;float dd=length(dv);if(dd<80.&&dd>.01){float f=1.-dd/80.;p+=dv/dd*f*f*16.*uMouse.z*(1.-sm(0.,.06,uP));}',
+  ' if(blue<.5){',
+  // dissolve, scrubbed: one beat of order on an 8px grid, then the ink drifts apart and condenses into the nav mark
+  '  float d=sm(.04,.7,uP);vec2 dir=normalize(aHome+1e-4)*(.35+aRnd.x*.9)+vec2(aRnd.y-.5,-.25-aRnd.z*.8);',
+  '  p+=dir*uR*1.25*d+wind(p,uTime)*60.*sin(3.14159*d);',
+  '  float h=sm(.48,1.,uP);vec2 np=uNav.xy+aHome*uNav.z;p=mix(p,np,h);rad=mix(rad,.6,h);alpha*=1.-sm(.9,1.,uP);',
+  ' } else {',
+  // the core holds longer, then drifts down the page as a sparse trail
+  '  float d=sm(.3,.98,uP);',
+  '  float fy=mix(uTrail.y,uTrail.z,aRnd.x);float fx=mix(16.,uRes.x-16.,fract(aRnd.y+aRnd.x*7.31));',
+  '  float bt=uTime*.16;vec2 breeze=vec2(sin(bt*1.3+aRnd.z*6.283+fy*.0021)+.6*sin(bt*2.7+fx*.0035+aRnd.w*9.),cos(bt*1.1+aRnd.w*6.283+fx*.0019)+.6*cos(bt*2.3+fy*.003+aRnd.z*7.))*22.;',
+  '  vec2 tp=vec2(fx,fy)+breeze+wind(vec2(fx,fy)+breeze,uTime*.5)*12.;',
+  '  p=mix(p,tp,d*d*(3.-2.*d))+wind(p,uTime)*90.*sin(3.14159*d);',
+  '  float vis=aRnd.w<.6?1.:0.;alpha*=mix(1.,vis*.9,sm(.35,.9,uP));rad=mix(rad,rad*.9,d);',
+  // ...and gathers at the pen tip as ink
+  '  float g=uG*uG*(3.-2.*uG);vec2 wp=uWell+aHome*16.+wind(uWell+aHome*40.,uTime)*1.5;p=mix(p,wp,g);',
+  '  alpha=mix(alpha,aMeta.y,g*step(.5,uP+g));rad=mix(rad,max(.7,rad*.62),g);',
+  '  float c=sm(aOrd-.03,aOrd+.03,uInk)*sm(.55,.9,uG);p=mix(p,uTip,c);alpha*=1.-c;',
+  ' }',
+  ' float kc=blue>.5?sm(0.,.55,uClose):sm(.3+aOrd*.42,.58+aOrd*.42,uClose);kc=.55*eh(kc)+.45*kc*kc*(3.-2.*kc);',
+  ' vec2 chm=uCC+aHome*uCR;p=mix(p,chm,kc)+wind(p,uTime)*50.*sin(3.14159*kc);alpha=mix(alpha,aMeta.y,kc);rad=mix(rad,aMeta.x*uCR/230.,kc);',
+  ' vA=alpha;vBlue=blue;vRad=rad*uDpr;',
+  ' gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);gl_PointSize=vRad*2.+2.;',
+  '}'].join('\n');
+  var fs=['precision mediump float;varying float vA;varying float vBlue;varying float vRad;',
+  'void main(){vec2 q=gl_PointCoord*2.-1.;float r=length(q)*(vRad+1.);float a=clamp(vRad+.5-r,0.,1.)*vA;',
+  'vec3 c=vBlue>.5?vec3(.1216,.2314,1.):vec3(.0667);gl_FragColor=vec4(c*a,a);}'].join('\n');
+  function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o}
+  try{prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,vs));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);gl.useProgram(prog)}
+  catch(err){console.warn(err);gl=null;H.classList.add('nogl');return}
+  function buf(arr,name,size){var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);var l=gl.getAttribLocation(prog,name);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,size,gl.FLOAT,false,0,0)}
+  buf(home,'aHome',2);buf(m,'aMeta',3);buf(rnd,'aRnd',4);buf(ord,'aOrd',1);
+  ['uRes','uDpr','uIntro','uTime','uR','uP','uG','uInk','uC','uWell','uTip','uNav','uTrail','uMouse','uClose','uCR','uCC'].forEach(function(n){U[n]=gl.getUniformLocation(prog,n)});
+  gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
+  resize();requestAnimationFrame(frame);
+}
+function resize(){if(!gl)return;dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;Hh=innerHeight;canvas.width=W*dpr;canvas.height=Hh*dpr;gl.viewport(0,0,canvas.width,canvas.height)}
+addEventListener('resize',resize);
+addEventListener('pointermove',function(e){if(e.pointerType==='mouse'){state.mouse[0]=e.clientX;state.mouse[1]=e.clientY;state.mt=1}},{passive:true});
+H.addEventListener('mouseleave',function(){state.mt=0});
+
+var closeSlot=$('closeslot'),slot=$('markslot'),navmark=$('navmark'),docEl=$('doc'),pad=$('pad'),nav=$('nav');
+function frame(now){
+  if(lenis)lenis.raf(now);
+  var sy=scrollY;nav.classList.toggle('scrolled',sy>8);
+  if(gl&&!D.hidden){
+    var t=(now-T0)/1000,sr=slot.getBoundingClientRect(),nr=navmark.getBoundingClientRect(),hero=slot.closest('section');
+    var R=sr.width*.36,cx=sr.left+sr.width/2,cy=sr.top+sr.height/2;
+    var hh=hero.offsetHeight;state.p=clamp(sy/(hh*.85),0,1.05);
+    var pr=pad.getBoundingClientRect(),dr=docEl.getBoundingClientRect();
+    var wellx=pr.left+14,welly=pr.bottom-28;
+    state.g=smooth(Hh*.75,Hh*.3,dr.top+dr.height*.35);nav.classList.toggle('past',state.p>.9);
+    // trail runs down the right margin from the hero to the signature desk
+    var tx=W-(Math.max(0,(W-1440)/2)+(W<760?9:22));
+    var heroBottom=hero.getBoundingClientRect().bottom;
+    state.mouse[2]+=(state.mt-state.mouse[2])*.08;
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform2f(U.uRes,W,Hh);gl.uniform1f(U.uDpr,dpr);gl.uniform1f(U.uIntro,RM?9:introDone?Math.max(t,9):t);gl.uniform1f(U.uTime,now/1000);
+    gl.uniform1f(U.uR,R);gl.uniform2f(U.uC,cx,cy);gl.uniform1f(U.uP,state.p);gl.uniform1f(U.uG,state.g);gl.uniform1f(U.uInk,state.ink);
+    gl.uniform2f(U.uWell,wellx,welly);gl.uniform2f(U.uTip,state.tip[0]||wellx,state.tip[1]||welly);
+    gl.uniform3f(U.uNav,nr.left+nr.width/2,nr.top+nr.height/2,nr.width*.42);
+    var fieldEnd=closeSlot.getBoundingClientRect().top-Hh*.2;
+    gl.uniform3f(U.uTrail,tx,heroBottom-hh*.35,fieldEnd);
+    canvas.style.zIndex=state.g>.9?15:-1;
+    gl.uniform3f(U.uMouse,state.mouse[0],state.mouse[1],state.mouse[2]);
+    var cr=closeSlot.getBoundingClientRect();gl.uniform1f(U.uClose,smooth(Hh*1.05,Hh*.42,cr.top+cr.height/2));gl.uniform1f(U.uCR,cr.width*.36);gl.uniform2f(U.uCC,cr.left+cr.width/2,cr.top+cr.height/2);
+    gl.drawArrays(gl.POINTS,0,N);
+  }
+  requestAnimationFrame(frame);
+}
+if(RM){H.classList.add('nogl');requestAnimationFrame(function f(n){nav.classList.toggle('scrolled',scrollY>8);requestAnimationFrame(f)})}
+else fetch('mark.json').then(function(r){return r.json()}).then(initGL).catch(function(){H.classList.add('nogl')});
+
+/* ───────── film player ───────── */
+(function(){
+  var v=$('video'),play=$('play'),pp=$('pp'),seek=$('seek'),tm=$('time'),cc=$('cc'),mute=$('mute'),fig=$('player');
+  $('captrack').src=URL.createObjectURL(new Blob(["WEBVTT\n\n00:00:01.400 --> 00:00:03.882\nIt took you years to build your judgement.\n\n00:00:08.000 --> 00:00:11.117\nAI can produce work like yours in seconds.\n\n00:00:13.800 --> 00:00:16.515\nBut when something's wrong, who answers for it?\n\n00:00:19.000 --> 00:00:22.702\nAI can't sign its work. It can't be held accountable.\n\n00:00:26.100 --> 00:00:27.298\nYou can.\n\n00:00:29.600 --> 00:00:32.376\nYour name, your judgement, your signature.\n\n00:00:35.500 --> 00:00:38.086\nYour Int drafts from your verified work.\n\n00:00:41.100 --> 00:00:43.587\nYou review it, and catch what it misses.\n\n00:00:44.200 --> 00:00:45.591\nThen you sign.\n\n00:00:47.300 --> 00:00:53.118\nClients get the speed of AI, and the judgement of an expert.\nAnd you're paid, every time.\n\n00:00:53.600 --> 00:00:57.597\nEvery output carries your name. Change one word, and it shows.\n\n00:00:59.600 --> 00:01:02.525\nThe judgement you built, working while you live.\n\n00:01:04.200 --> 00:01:05.576\nintangible.\n"],{type:'text/vtt'}));
+  var fmt=function(s){s=Math.max(0,s|0);return Math.floor(s/60)+':'+('0'+s%60).slice(-2)};
+  function showCaps(on){for(var i=0;i<v.textTracks.length;i++)v.textTracks[i].mode=on?'showing':'hidden';cc.setAttribute('aria-pressed',on)}
+  play.addEventListener('click',function(){fig.classList.add('started');showCaps(true);v.play().catch(function(){});pp.focus()});
+  pp.addEventListener('click',function(){if(v.paused)v.play();else v.pause()});
+  v.addEventListener('play',function(){pp.textContent='Pause';pp.setAttribute('aria-label','Pause')});
+  v.addEventListener('pause',function(){pp.textContent='Play';pp.setAttribute('aria-label','Play')});
+  v.addEventListener('timeupdate',function(){seek.value=v.currentTime;tm.textContent=fmt(v.currentTime)+' / 1:07'});
+  seek.addEventListener('input',function(){v.currentTime=+seek.value});
+  cc.addEventListener('click',function(){showCaps(cc.getAttribute('aria-pressed')!=='true')});
+  mute.addEventListener('click',function(){v.muted=!v.muted;mute.setAttribute('aria-pressed',v.muted);mute.textContent=v.muted?'Unmute':'Mute'});
+  v.addEventListener('ended',function(){fig.classList.remove('started');v.currentTime=0});
+})();
+
+/* ───────── the signature moment ───────── */
+var DRAFT='Between July and September the programme disbursed USD 412,800 of a USD 450,000 budget (91.7%). Drip kits reached 1,240 farming households across Kisumu and Migori, 58% of them led by women. Average yields on irrigated plots rose from 2.1 to 3.4 tonnes per hectare against the baseline. Two procurement delays moved training in Nyatike to October; the funds are committed and will be reported in Q4.';
+var draft=$('draft'),stateText=$('docstatetext'),status=$('status'),signBtn=$('signbtn'),rcpt=$('rcpt'),change=$('change'),peek=$('peek');
+var phase='idle',reviewStart=0,signedText='',keys=null,sigBytes=null,signedHash='',signedAll=false;
+function setState(cls,txt){docEl.classList.remove('review','signed');if(cls)docEl.classList.add(cls);stateText.textContent=txt}
+function editable(on,label){
+  if(on){draft.setAttribute('contenteditable','plaintext-only');if(draft.contentEditable!=='plaintext-only')draft.setAttribute('contenteditable','true');
+    draft.classList.add('editable');draft.setAttribute('role','textbox');draft.setAttribute('aria-multiline','true');draft.setAttribute('aria-label',label);}
+  else{draft.removeAttribute('contenteditable');draft.classList.remove('editable');draft.removeAttribute('role');draft.removeAttribute('aria-label')}
+}
+function startDraft(){
+  if(phase!=='idle')return;phase='drafting';setState('','Int drafting · int_richards_v1');status.textContent='The Int is drafting from its owner’s verified work. Click the draft to skip ahead.';
+  var full=DRAFT,i=RM?full.length:0;
+  (function tick(){
+    if(i<full.length){i=Math.min(full.length,i+1);draft.textContent=full.slice(0,i);var c=D.createElement('span');c.className='cur';draft.appendChild(c);setTimeout(tick,16)}
+    else review();
+  })();
+  draft.addEventListener('click',function skip(){if(phase==='drafting'){i=full.length}},{once:true});
+}
+function review(){
+  phase='ready';reviewStart=performance.now();draft.textContent=DRAFT;
+  editable(true,'The Int’s draft. Edit anything you would change before signing.');
+  docEl.classList.add('ready');signBtn.disabled=false;pad.style.cursor='';$('padhint').textContent='Sign here, or press Sign';
+  setState('review','In review · your name goes on this');status.textContent='Read it through. Change anything you wouldn’t put your name to, then sign.';
+}
+// start drafting when the document comes into view
+new IntersectionObserver(function(es,o){es.forEach(function(en){if(en.isIntersecting){startDraft();o.disconnect()}})},{threshold:.35}).observe(docEl);
+
+/* the pad: pressure-like width from pen speed, ink in signature blue */
+var ctx=pad.getContext('2d'),drawing=false,last=null,lw=2.4,inkLen=0;
+function sizePad(){var r=pad.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);pad.width=r.width*d;pad.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#1f3bff';ctx.fillStyle='#1f3bff'}
+sizePad();addEventListener('resize',function(){if(phase!=='signed')sizePad()});
+function at(e){var r=pad.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()}}
+function seg(a,b){
+  var d=Math.hypot(b.x-a.x,b.y-a.y),v=d/Math.max(1,b.t-a.t);var w=clamp(3.6-v*1.4,1.1,3.6);lw+= (w-lw)*.35;
+  ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();inkLen+=d;
+  state.ink=clamp(inkLen/520,0,1);
+}
+pad.addEventListener('pointerdown',function(e){
+  if(phase!=='ready')return;editable(false);e.preventDefault();pad.setPointerCapture(e.pointerId);drawing=true;last=at(e);
+  var r=pad.getBoundingClientRect();state.tip=[e.clientX,e.clientY];$('padhint').style.opacity=0;
+});
+pad.addEventListener('pointermove',function(e){if(!drawing)return;var p=at(e);seg(last,p);last=p;state.tip=[e.clientX,e.clientY]});
+function up(){if(!drawing)return;drawing=false;if(inkLen>160)complete();else status.textContent='Keep going: draw your full signature.'}
+pad.addEventListener('pointerup',up);pad.addEventListener('pointercancel',up);
+
+// keyboard alternative: the generated signature strokes in over 1.4s
+signBtn.addEventListener('click',function(){
+  if(phase!=='ready')return;editable(false);phase='autosign';signBtn.disabled=true;$('padhint').style.opacity=0;
+  var r=pad.getBoundingClientRect(),pts=sigPath(11,Math.min(360,r.width-40),r.height*.9).map(function(p){return[p[0]+30,p[1]]}),n=pts.length,t0=performance.now(),i=1;
+  var prev={x:pts[0][0],y:pts[0][1],t:t0};
+  (function step(now){
+    var k=RM?1:easeH((now-t0)/1400),upto=Math.floor(k*(n-1));
+    for(;i<=upto;i++){var p={x:pts[i][0],y:pts[i][1],t:prev.t+6};seg(prev,p);prev=p;state.tip=[r.left+p.x,r.top+p.y]}
+    if(k<1)requestAnimationFrame(step);else complete();
+  })(performance.now());
+});
+
+function hex(buf){return Array.from(new Uint8Array(buf)).map(function(b){return('0'+b.toString(16)).slice(-2)}).join('')}
+function mid(h){return h.slice(0,10)+'…'+h.slice(-10)}
+function sha(t){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)).then(hex)}
+function sentences(t){return t.split(/(?<=[.;])\s+(?=[A-Z])/).length}
+var sonic=null;
+function complete(){
+  if(phase==='signed')return;phase='signed';signedAll=false;signBtn.disabled=true;docEl.classList.remove('ready');pad.style.cursor='default';
+  state.ink=1;
+  try{if(!sonic){sonic=new Audio('sonic-logo.mp3');sonic.volume=.35}sonic.currentTime=0;sonic.play().catch(function(){})}catch(e){}
+  setState('signed','Signed · receipt issued');status.textContent='Signed. A receipt was issued with the document’s hash.';
+  var secs=Math.round((performance.now()-reviewStart)/1000);$('rtime').textContent=Math.floor(secs/60)+':'+('0'+secs%60).slice(-2);
+  signedText=draft.textContent;
+  var s0=DRAFT.split(/(?<=[.;])\s+(?=[A-Z])/),s1=signedText.split(/(?<=[.;])\s+(?=[A-Z])/),ed=0;
+  s0.forEach(function(x,k){if(s1[k]!==x)ed++});if(s1.length>s0.length)ed+=s1.length-s0.length;
+  $('redits').textContent=ed+' of '+s0.length+' sentences';
+  var cs=crypto.subtle;
+  cs.generateKey({name:'ECDSA',namedCurve:'P-256'},false,['sign','verify']).then(function(k){keys=k;
+    return Promise.all([sha(signedText),cs.sign({name:'ECDSA',hash:'SHA-256'},k.privateKey,new TextEncoder().encode(signedText))]);
+  }).then(function(res){
+    signedHash=res[0];sigBytes=res[1];
+    rcpt.classList.add('shown');requestAnimationFrame(function(){requestAnimationFrame(function(){rcpt.classList.add('on','lift')})});setTimeout(function(){rcpt.classList.remove('lift')},800);
+    typeHash($('rhash'),'sha-256 '+mid(signedHash),signedHash);
+    setTimeout(function(){typeHash($('rsig'),'ecdsa '+mid(hex(sigBytes)),hex(sigBytes))},350);
+    setTimeout(function(){change.classList.add('shown');requestAnimationFrame(function(){requestAnimationFrame(function(){change.classList.add('on')})});makeEditable()},900);
+    if(matchMedia('(max-width:760px)').matches)peek.classList.add('on');
+  });
+  setTimeout(function(){signedAll=true},1600);
+}
+function typeHash(el,txt,full){el.title=full;if(RM){el.textContent=txt;return}var i=0;(function t(){el.textContent=txt.slice(0,++i);if(i<txt.length)setTimeout(t,16)})()}
+function scramble(el,final,cb){var ch='0123456789abcdef',t0=performance.now();(function s(now){
+  if(now-t0<300){el.textContent=el.textContent.replace(/[0-9a-f](?=[^ ]*$)/g,function(){return ch[(Math.random()*16)|0]});requestAnimationFrame(s)}else{el.textContent=final;cb&&cb()}})(t0)}
+function makeEditable(){
+  editable(true,'The signed report. Edit any word to test the receipt.');
+  var pending=0;
+  draft.addEventListener('input',function(){
+    if(phase!=='signed')return;var my=++pending,t=draft.textContent;
+    Promise.all([sha(t),crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},keys.publicKey,sigBytes,new TextEncoder().encode(t))]).then(function(r){
+      if(my!==pending)return;var ok=r[1],h=$('rhash');
+      var apply=function(){rcpt.classList.toggle('failed',!ok);$('rstate').textContent=ok?'Verified':'Verification failed';
+        $('rwhy').textContent=ok?'Signature matches the document.':'The document no longer matches the signed hash.';h.title=r[0];
+        setState(ok?'signed':'review',ok?'Signed · receipt issued':'Changed after signing');};
+      if(!ok)scramble(h,'sha-256 '+mid(r[0]),apply);else{h.textContent='sha-256 '+mid(r[0]);apply()}
+      if(matchMedia('(max-width:760px)').matches&&!rcpt.classList.contains('on')){rcpt.classList.add('on')}
+    });
+  });
+}
+peek.addEventListener('click',function(){rcpt.classList.add('on')});
+new IntersectionObserver(function(es){es.forEach(function(en){if(!en.isIntersecting&&matchMedia('(max-width:760px)').matches)rcpt.classList.remove('on')})},{threshold:0}).observe(docEl);
+
+/* reveals: one observer for everything that enters once */
+function onView(el,fn,th){if(!el)return;if(RM){fn(el);return}new IntersectionObserver(function(es,o){es.forEach(function(en){if(en.isIntersecting){fn(en.target);o.unobserve(en.target)}})},{threshold:th||.3}).observe(el)}
+D.querySelectorAll('.rv').forEach(function(el){onView(el,function(e){e.classList.add('in')},.25)});
+// count-ups: the machine ticks the figure up; the unit is there from the start
+D.querySelectorAll('[data-count]').forEach(function(el){onView(el,function(){
+  var to=+el.dataset.count,pre=el.dataset.pre,post=el.dataset.post,t0=performance.now();if(RM)return;
+  (function f(now){var k=clamp((now-t0)/1200,0,1),e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;el.textContent=pre+Math.round(to*e)+post;if(k<1)requestAnimationFrame(f)})(t0);
+},.6)});
+onView($('field'),function(e){e.classList.add('in')},.4);
+onView($('roles'),function(e){[].forEach.call(e.querySelectorAll('.role'),function(r,k){setTimeout(function(){r.classList.add('on')},RM?0:k*260)})},.35);
+onView($('ledger'),function(e){e.classList.add('in')},.25);
+// co-signature: the apprentice signs first in muted ink, then the senior in signature blue
+function stroke(svg,seed,col,delay){
+  var pts=sigPath(seed,200,46),len=lengthOf(pts),id='m'+seed,center='M'+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join('L');
+  svg.innerHTML='<defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="90"><path d="'+center+'" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="'+len.toFixed(0)+'" stroke-dashoffset="'+(RM?0:len).toFixed(0)+'"/></mask></defs><path d="'+outline(pts,.9,2.6)+'" fill="'+col+'" mask="url(#'+id+')"/>';
+  return function(){var m=svg.querySelector('mask path');setTimeout(function(){m.style.transition='stroke-dashoffset 1400ms cubic-bezier(.22,1,.36,1)';m.style.strokeDashoffset='0'},delay)};
+}
+var goJr=stroke($('sigjr'),23,'#5b5b5b',0),goSr=stroke($('sigsr'),37,'#1f3bff',1500);
+onView($('cosign'),function(){goJr();goSr()},.5);
+// the living loop loads only when it's near, and never plays for reduced motion
+onView($('living'),function(v){[].forEach.call(v.querySelectorAll('source'),function(s){s.src=s.dataset.src});v.load();if(!RM)v.play().catch(function(){})},.1);
+
+/* how it works: scrubbed by scroll, one line carrying the document and the money together */
+var track=$('howtrack'),fill=$('howfill'),token=$('howtoken'),money=$('howmoney'),stepEls=[].slice.call(D.querySelectorAll('#steps li')),cols=[],lastKey='';
+var MONEY=['Not booked','USD 1,200 in escrow','USD 1,200 in escrow','USD 1,200 in escrow','USD 1,200 held · 7 days','USD 1,200 paid'];
+function measureHow(){var lr=fill.parentNode.getBoundingClientRect();cols=stepEls.map(function(li){return li.getBoundingClientRect().left-lr.left})}
+addEventListener('resize',measureHow);addEventListener('load',measureHow);measureHow();
+// runs only while the scene is near the screen, and writes only what changed
+function howFrame(){
+  requestAnimationFrame(howFrame);
+  var r=track.getBoundingClientRect();if(r.bottom<-200||r.top>innerHeight+200)return;
+  var wide=innerWidth>900,k=wide?clamp(-r.top/(r.height-innerHeight),0,1):clamp((innerHeight*.6-r.top)/r.height,0,1);
+  var idx=Math.min(5,Math.floor(k*6.0001)),x=0;
+  if(wide&&cols.length){var f=k*6-idx;x=cols[idx]+(idx<5?(cols[idx+1]-cols[idx])*smooth(.55,1,f):0)}
+  var key=idx+':'+Math.round(x);if(key===lastKey)return;lastKey=key;
+  stepEls.forEach(function(li,i){li.classList.toggle('on',i<=idx)});
+  if(wide){fill.style.width=x+'px';token.style.left=x+'px'}
+  money.textContent=MONEY[idx];token.classList.toggle('drafted',idx>=2);token.classList.toggle('signed',idx>=3);token.classList.toggle('held',idx>=1&&idx<5);token.classList.toggle('paid',idx>=5);
+}
+requestAnimationFrame(howFrame);
+
+/* the three paths. To collect sign-ups when hosted (GitHub Pages is static), paste a form endpoint here,
+   e.g. https://formspree.io/f/xxxxxxx. Left empty, the page says plainly that nothing was sent. */
+var FORM_ENDPOINT='';
+D.querySelectorAll('.path').forEach(function(pa){
+  pa.querySelector('.open-btn').addEventListener('click',function(){pa.classList.add('open');pa.querySelector('input').focus()});
+  pa.querySelector('form').addEventListener('submit',function(e){e.preventDefault();var f=e.target,ok=f.name.value.trim()&&/.+@.+\..+/.test(f.email.value);
+    var note=f.querySelector('.note');if(!ok){note.textContent='Add your name and a valid email.';return}
+    if(!FORM_ENDPOINT){note.textContent='Thank you. This page isn’t connected to an inbox yet, so nothing was sent.';return}
+    var data=new FormData(f);data.append('list',pa.id);note.textContent='Sending…';
+    fetch(FORM_ENDPOINT,{method:'POST',body:data,headers:{Accept:'application/json'}}).then(function(r){
+      if(!r.ok)throw 0;f.reset();note.textContent='You’re on the list. We’ll be in touch.'}).catch(function(){note.textContent='That didn’t send. Please try again.'});});
+});
+$('rclose').addEventListener('click',function(){rcpt.classList.remove('on');peek.focus()});
+})();
+</script>
+</body>
+</html>
