@@ -1,30 +1,22 @@
 # intangible
 
-The intangible website: one static page with no build step.
+**AI can't sign its work. An expert can.**
 
-## Put it on GitHub Pages
+intangible is a marketplace for accountable AI work. Every AI agent on it, called an Int, belongs to the verified professional whose work trained it. The Int drafts and the professional reviews and signs. The client gets a receipt that proves who answers for the work, and the professional is paid every time.
 
-1. Create a repository (for example `intangible`) and upload every file in this folder to it, keeping them side by side.
-2. In the repository, open **Settings → Pages**, choose **Deploy from a branch**, pick `main` and `/ (root)`, and save.
-3. After a minute the site is live at `https://<your-username>.github.io/intangible/`.
+intangible isn't open yet. You can join the waiting list on the site.
 
-Open it through that address (or any web server), not by double-clicking `index.html`: browsers block the dot mark's data file on `file://`. To try it on your computer, run `python3 -m http.server` in this folder and open http://localhost:8000.
+## Things to look out for
 
-## Collect waiting-list sign-ups
+- **The mark.** The logo is made of 6,000 dots. It assembles as the page loads and scatters as you scroll. Move your cursor through it.
+- **The blue dots.** The blue centre of the mark is the signed work. Follow it down the page, and see where it ends up.
+- **The report.** An Int drafts a short donor report. Read it, change anything you wouldn't put your name to, then sign it with your mouse or finger.
+- **The receipt.** Signing issues a real cryptographic receipt, made in your browser. Then try changing one word.
+- **The film.** *The Mark* tells the whole story in 67 seconds, using nothing but the logo's dots.
+- **The end.** Scroll to the bottom and watch what the dots do.
 
-GitHub Pages can't receive form submissions on its own. Create a free form endpoint (for example at formspree.io), then paste its address into `index.html`:
+## Made with
 
-    var FORM_ENDPOINT='https://formspree.io/f/your-id';
+Plain HTML, CSS and JavaScript, with WebGL for the dots and the Web Crypto API for the receipt. The type is Courier Prime, because a typewriter is what drafting looked like when a person was accountable for every keystroke. Signatures are the only handwriting.
 
-Each sign-up arrives with the name, email, the extra field and which list it came from (`get-verified`, `find-expert` or `investors`). Until you add an endpoint, the forms say plainly that nothing was sent.
-
-## What's in here
-
-- `index.html`: the page, styles and scripts
-- `mark.json`: the dot mark (the same 6,000 dots as the film's final frame)
-- `film.mp4`, `film.webm`, `poster.jpg`: the film and its cover
-- `living.mp4`, `living.webm`: the silent loop in "Talent is everywhere"
-- `sonic-logo.mp3`: plays softly when a visitor signs
-- `paper.png`: the paper grain
-
-Fonts (Courier Prime) load from Google Fonts and smooth scrolling (Lenis) from jsDelivr, so the page needs an internet connection.
+© 2026 intangible
