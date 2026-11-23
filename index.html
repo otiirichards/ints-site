@@ -976,7 +976,7 @@ requestAnimationFrame(howFrame);
 
 /* the three paths. To collect sign-ups when hosted (GitHub Pages is static), paste a form endpoint here,
    e.g. https://formspree.io/f/xxxxxxx. Left empty, the page says plainly that nothing was sent. */
-var FORM_ENDPOINT='';
+var FORM_ENDPOINT='https://formspree.io/f/xeaglodp';
 D.querySelectorAll('.path').forEach(function(pa){
   pa.querySelector('.open-btn').addEventListener('click',function(){pa.classList.add('open');pa.querySelector('input').focus()});
   pa.querySelector('form').addEventListener('submit',function(e){e.preventDefault();var f=e.target,ok=f.name.value.trim()&&/.+@.+\..+/.test(f.email.value);
