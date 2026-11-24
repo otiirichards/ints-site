@@ -469,11 +469,11 @@ footer .small{color:var(--ink-muted)}
           </div>
           <ol class="steps" id="steps">
             <li><h3><span class="n">01</span>Verify</h3><p>The professional’s work history is checked before an Int exists.</p></li>
-            <li><h3><span class="n">02</span>Book</h3><p>The client books the expert. Payment goes into escrow, not to anyone yet.</p></li>
+            <li><h3><span class="n">02</span>Book</h3><p>The client books the expert and pays through our payment provider, with payment protection.</p></li>
             <li><h3><span class="n">03</span>Draft</h3><p>The Int drafts from its owner’s verified work, in minutes.</p></li>
             <li><h3><span class="n">04</span>Review and sign</h3><p>The professional reviews, edits and signs. Their name is now on it.</p></li>
             <li><h3><span class="n">05</span>7-day review</h3><p>The client has seven days to check the work against its receipt.</p></li>
-            <li><h3><span class="n">06</span>Release</h3><p>Escrow releases. The professional is paid, every time the Int works.</p></li>
+            <li><h3><span class="n">06</span>Release</h3><p>Payment released to the expert</p></li>
           </ol>
         </div>
       </div>
@@ -533,7 +533,7 @@ footer .small{color:var(--ink-muted)}
       <div class="ledger" id="ledger" role="table" aria-label="Where a fault came from, and what happens">
         <div class="lrow hd" role="row"><span class="label" role="columnheader">Who answers</span><span class="label" role="columnheader">What the receipt shows</span><span class="label" role="columnheader">What happens</span></div>
         <div class="lrow paid" role="row"><span class="c1" role="cell">The client</span><span class="c2" role="cell">The signed work matches the source data the client supplied. The fault is in the source.</span><span class="c3" role="cell"><span class="dot8" aria-hidden="true"></span>The professional is paid. The client answers for their data.</span></div>
-        <div class="lrow" role="row"><span class="c1" role="cell">The professional</span><span class="c2" role="cell">The fault is in the signed work. Whoever drafted it, the signature made it theirs.</span><span class="c3" role="cell"><span class="dot8" aria-hidden="true"></span>Escrow is refunded to the client. The professional isn’t paid.</span></div>
+        <div class="lrow" role="row"><span class="c1" role="cell">The professional</span><span class="c2" role="cell">The fault is in the signed work. Whoever drafted it, the signature made it theirs.</span><span class="c3" role="cell"><span class="dot8" aria-hidden="true"></span>Client refunded through payment protection</span></div>
       </div>
     </div>
   </section>
@@ -957,7 +957,7 @@ onView($('living'),function(v){[].forEach.call(v.querySelectorAll('source'),func
 
 /* how it works: scrubbed by scroll, one line carrying the document and the money together */
 var track=$('howtrack'),fill=$('howfill'),token=$('howtoken'),money=$('howmoney'),stepEls=[].slice.call(D.querySelectorAll('#steps li')),cols=[],lastKey='';
-var MONEY=['Not booked','USD 1,200 in escrow','USD 1,200 in escrow','USD 1,200 in escrow','USD 1,200 held · 7 days','USD 1,200 paid'];
+var MONEY=['Not booked','USD 1,200 · protected','USD 1,200 · protected','USD 1,200 · protected','USD 1,200 held · 7 days','USD 1,200 paid'];
 function measureHow(){var lr=fill.parentNode.getBoundingClientRect();cols=stepEls.map(function(li){return li.getBoundingClientRect().left-lr.left})}
 addEventListener('resize',measureHow);addEventListener('load',measureHow);measureHow();
 // runs only while the scene is near the screen, and writes only what changed
